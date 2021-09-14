@@ -74,12 +74,10 @@ namespace Sanic
 
             cursor.GotoNext
             (
+                MoveType.After,
                 x => x.MatchLdfld(out _),
-                x => x.MatchCall<Time>("get_unscaledDeltaTime"),
-                x => x.MatchAdd()
+                x => x.MatchCall<Time>("get_unscaledDeltaTime")
             );
-
-            cursor.GotoNext();
 
             cursor.EmitDelegate<Func<float>>(() => _globalSettings.SpeedMultiplier);
 
@@ -115,6 +113,9 @@ namespace Sanic
 
         private void GameManager_SetTimeScale_1(On.GameManager.orig_SetTimeScale_float orig, GameManager self, float newTimeScale)
         {
+            if (Mirror.GetField<GameManager, int>(self, "timeSlowedCount") > 1)
+                newTimeScale = Math.Min(newTimeScale, TimeController.GenericTimeScale);
+            
             TimeController.GenericTimeScale = (newTimeScale <= 0.01f ? 0f : newTimeScale) * _globalSettings.SpeedMultiplier;
         }
     }
